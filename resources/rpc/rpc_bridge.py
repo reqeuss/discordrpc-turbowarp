@@ -100,7 +100,9 @@ def make_presence_kwargs(data: dict[str, Any]) -> dict[str, Any]:
     return {
         "details": clean_text(data.get("details")),
         "state": clean_text(data.get("state")),
-        "start": optional_int(data, "start"),
+        # Keep one stable session timer when the extension leaves this field blank.
+        # Passing None here would remove/reset the timestamp on every presence update.
+        "start": optional_int(data, "start") or SESSION_START,
         "end": optional_int(data, "end"),
         "large_image": clean_text(data.get("largeImage"), 256),
         "large_text": clean_text(data.get("largeText")),
