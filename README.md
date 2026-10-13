@@ -27,6 +27,21 @@ game-folder/
         └── requirements.txt
 ```
 
+## Ready-to-copy game files
+
+The `ingame/` directory contains the files intended to be copied into the game's folder:
+
+```text
+ingame/
+├── game.bat
+└── resources/
+    └── rpc/
+        ├── rpc_bridge.py
+        └── requirements.txt
+```
+
+Copy the **contents of `ingame/`** beside `testdiscordrpc.exe` in the game folder. The bridge EXE is generated separately by `build_exe.bat`; if you use it, place it at `resources/rpc/rpc_bridge.exe`. The BAT uses that EXE first and falls back to Python when it is absent.
+
 ## One-time configuration
 
 Open `resources/rpc/rpc_bridge.py` and edit the settings near the top:
