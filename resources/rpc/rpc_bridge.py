@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import threading
 import time
 from contextlib import suppress
@@ -18,7 +19,12 @@ from pypresence import Presence
 from websockets.exceptions import ConnectionClosed
 from websockets.sync.server import Server, serve
 
-RPC_DIR = Path(__file__).resolve().parent
+if getattr(sys, "frozen", False):
+    # In a PyInstaller build, use the actual EXE location, not the temporary
+    # extraction directory used by one-file executables.
+    RPC_DIR = Path(sys.executable).resolve().parent
+else:
+    RPC_DIR = Path(__file__).resolve().parent
 GAME_DIR = RPC_DIR.parent.parent
 
 HOST = os.getenv("DISCORD_RPC_HOST", "127.0.0.1")
