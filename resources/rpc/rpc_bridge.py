@@ -20,7 +20,6 @@ from websockets.sync.server import Server, serve
 
 RPC_DIR = Path(__file__).resolve().parent
 GAME_DIR = RPC_DIR.parent.parent
-CONFIG_FILE = RPC_DIR / "config.json"
 
 HOST = os.getenv("DISCORD_RPC_HOST", "127.0.0.1")
 PORT = int(os.getenv("DISCORD_RPC_PORT", "32123"))
@@ -28,12 +27,14 @@ POLL_INTERVAL = 1.0
 CONNECT_RETRY_SECONDS = 5.0
 SESSION_START = int(time.time())
 
-DEFAULTS: dict[str, Any] = {
-    "details": "Playing a game",
-    "state": "In the game",
-    "large_image": None,
-    "large_text": None,
-}
+# EDIT THESE VALUES DIRECTLY IN THIS FILE.
+# Find the Application ID in Discord Developer Portal > General Information.
+APP_ID = "YOUR_DISCORD_APPLICATION_ID"
+GAME_EXE = GAME_DIR / "testdiscordrpc.exe"
+DEFAULT_DETAILS = "Playing a game"
+DEFAULT_STATE = "In the game"
+DEFAULT_LARGE_IMAGE = ""
+DEFAULT_LARGE_TEXT = ""
 MAX_MESSAGE_BYTES = 64 * 1024
 
 rpc: Presence | None = None
@@ -44,39 +45,6 @@ server_ready = threading.Event()
 server_error: str | None = None
 pending_update: dict[str, Any] | None = None
 shutdown_event = threading.Event()
-
-
-def load_config() -> dict[str, Any]:
-    """Read local config; environment variables override the file."""
-    config: dict[str, Any] = {}
-    if CONFIG_FILE.is_file():
-        try:
-            loaded = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
-            if isinstance(loaded, dict):
-                config = loaded
-            else:
-                print(f"[RPC] WARNING: {CONFIG_FILE.name} must contain a JSON object.")
-        except (OSError, json.JSONDecodeError) as exc:
-            print(f"[RPC] WARNING: Cannot read {CONFIG_FILE.name}: {exc}")
-
-    app_id = os.getenv("DISCORD_APP_ID") or config.get("app_id") or ""
-    configured_game = os.getenv("DISCORD_GAME_EXE") or config.get("game_exe") or "testdiscordrpc.exe"
-    game_path = Path(str(configured_game)).expanduser()
-    if not game_path.is_absolute():
-        game_path = GAME_DIR / game_path
-
-    defaults = config.get("defaults", {})
-    if not isinstance(defaults, dict):
-        defaults = {}
-
-    return {
-        "app_id": str(app_id).strip(),
-        "game_exe": game_path.resolve(),
-        "default_details": str(defaults.get("details", DEFAULTS["details"])),
-        "default_state": str(defaults.get("state", DEFAULTS["state"])),
-        "large_image": clean_text(defaults.get("large_image"), 256),
-        "large_text": clean_text(defaults.get("large_text"), 128),
-    }
 
 
 def clean_text(value: Any, limit: int = 128) -> str | None:
@@ -255,22 +223,20 @@ def connect_discord(app_id: str) -> bool:
 
 def run_bridge() -> int:
     global rpc, rpc_connected, pending_update
-    config = load_config()
-    game_exe: Path = config["game_exe"]
-    app_id: str = config["app_id"]
+    game_exe = GAME_EXE.resolve()
+    app_id = APP_ID.strip()
 
     print("[RPC] Discord Rich Presence bridge starting.")
     print(f"[RPC] Game executable: {game_exe}")
-    print(f"[RPC] Config file: {CONFIG_FILE}")
+    print("[RPC] Settings are configured at the top of rpc_bridge.py.")
 
     if not app_id.isdigit():
-        print("[RPC] ERROR: Set a numeric app_id in resources/rpc/config.json.")
-        print("[RPC] Copy config.example.json to config.json and edit app_id.")
+        print("[RPC] ERROR: Edit APP_ID near the top of resources/rpc/rpc_bridge.py.")
         return 2
     if not game_exe.is_file():
         print("[RPC] ERROR: Game executable not found.")
         print(f"[RPC] Expected: {game_exe}")
-        print("[RPC] Set game_exe in resources/rpc/config.json.")
+        print("[RPC] Edit GAME_EXE near the top of resources/rpc/rpc_bridge.py.")
         return 2
 
     thread = threading.Thread(target=websocket_server, name="rpc-websocket", daemon=True)
@@ -302,11 +268,11 @@ def run_bridge() -> int:
                             print("[RPC] Connected to Discord.")
                             try:
                                 rpc.update(
-                                    details=config["default_details"],
-                                    state=config["default_state"],
+                                    details=DEFAULT_DETAILS,
+                                    state=DEFAULT_STATE,
                                     start=SESSION_START,
-                                    large_image=config["large_image"],
-                                    large_text=config["large_text"],
+                                    large_image=clean_text(DEFAULT_LARGE_IMAGE, 256),
+                                    large_text=clean_text(DEFAULT_LARGE_TEXT, 128),
                                 )
                             except Exception as exc:
                                 print(f"[RPC] Default presence failed: {type(exc).__name__}: {exc}")
