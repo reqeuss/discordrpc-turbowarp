@@ -1,11 +1,10 @@
-# Local configuration: contains the app ID and local game path
-resources/rpc/config.json
-
-# Python
-__pycache__/
-*.py[cod]
+# Python virtual environment created by game.bat
 .venv/
 venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
 
 # Logs and editor files
 *.log
