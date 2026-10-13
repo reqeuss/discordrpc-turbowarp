@@ -21,7 +21,7 @@
 3. [Discord Developer Portal](https://discord.com/developers/applications) でアプリケーションを作成し、Application ID を取得します。
 4. `resources/rpc/rpc_bridge.py` の `APP_ID` を自分の数値 ID に変更します。Bot token や client secret は記入しないでください。
 5. `ingame/` の中身をゲームの実行ファイルと同じフォルダーへコピーします。
-6. Windows で `game.bat` を実行します。ブリッジの既定値は `testdiscordrpc.exe` なので、実行ファイル名が異なる場合は `GAME_EXE` を変更してください。
+**重要：** `resources/rpc/rpc_bridge.py` を開き、`GAME_EXE` の `testdiscordrpc.exe` を、ゲームフォルダーのルート（`game.bat` と同じ場所）にあるコンパイル済みゲーム実行ファイルの正確な名前に置き換えてください。`.exe` 拡張子と引用符はそのままにします。例：`MyGame.exe` の場合は `GAME_EXE = GAME_DIR / "MyGame.exe"` とします。
 
 ブリッジは最初に `resources/rpc/rpc_bridge.exe` を探します。存在しない場合は Python 3 を探し、初回起動時に依存関係をインストールします。コンパイル済みブリッジを配布する場合は、ビルド前に Application ID を設定してください。Discord デスクトップアプリへのログインも必要です。
 
