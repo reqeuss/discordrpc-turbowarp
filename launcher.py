@@ -21,7 +21,8 @@ def app_dir() -> Path:
 ROOT = app_dir()
 GAME = ROOT / "testdiscordrpc.exe"
 RPC_DIR = ROOT / "resources" / "rpc"
-BRIDGE = RPC_DIR / "rpc_bridge.py"
+BRIDGE_PY = RPC_DIR / "rpc_bridge.py"
+BRIDGE_EXE = RPC_DIR / "rpc_bridge.exe"
 REQUIREMENTS = RPC_DIR / "requirements.txt"
 VENV = ROOT / ".venv"
 PYTHON = VENV / "Scripts" / "python.exe"
@@ -54,7 +55,7 @@ def main() -> int:
         log.write("\n--- Game launcher started ---\n")
         log.flush()
 
-        for required in (GAME, BRIDGE, REQUIREMENTS):
+        for required in (GAME, REQUIREMENTS):
             if not required.is_file():
                 message = f"Required file not found:\n{required}\n\nSee {LOG.name} for details."
                 log.write(message + "\n")
