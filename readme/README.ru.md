@@ -20,7 +20,7 @@
 3. Создайте приложение в [Discord Developer Portal](https://discord.com/developers/applications) и скопируйте Application ID.
 4. Укажите числовой ID в `APP_ID` файла `resources/rpc/rpc_bridge.py`. Не добавляйте bot token или client secret.
 5. Скопируйте содержимое `ingame/` рядом с исполняемым файлом игры.
-6. В Windows запустите `game.bat`. По умолчанию bridge ищет `testdiscordrpc.exe`; при другом имени измените `GAME_EXE`.
+**Важно:** откройте `resources/rpc/rpc_bridge.py` и замените `testdiscordrpc.exe` в `GAME_EXE` точным именем скомпилированного исполняемого файла игры, расположенного в корневой папке игры (рядом с `game.bat`). Сохраните расширение `.exe` и кавычки. Например, для `MyGame.exe` укажите `GAME_EXE = GAME_DIR / "MyGame.exe"`.
 
 Сначала скрипт ищет `resources/rpc/rpc_bridge.exe`. Если файла нет, он ищет Python 3 и устанавливает зависимости при первом запуске. Настройте Application ID до компиляции bridge. Настольное приложение Discord должно быть запущено, а пользователь — войти в аккаунт.
 
