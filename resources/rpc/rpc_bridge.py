@@ -161,7 +161,16 @@ def apply_presence(data: dict[str, Any]) -> bool:
         )
         return True
     except Exception as exc:
-        print(f"[RPC] Update failed: {type(exc).__name__}: {exc}")
+        # A failed RPC write often means Discord closed or reset the IPC pipe.
+        # Drop the broken client so the main loop can reconnect and replay the
+        # most recent queued update instead of getting stuck in a false-connected state.
+        failed_rpc = rpc
+        rpc = None
+        rpc_connected = False
+        if failed_rpc is not None:
+            with suppress(Exception):
+                failed_rpc.close()
+        print(f"[RPC] Update failed; will reconnect: {type(exc).__name__}: {exc}")
         return False
 
 
