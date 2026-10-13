@@ -20,7 +20,7 @@
 3. [Discord Developer Portal](https://discord.com/developers/applications) में ऐप बनाएँ और Application ID कॉपी करें।
 4. `resources/rpc/rpc_bridge.py` में `APP_ID` को अपने numeric ID से बदलें। bot token या client secret न डालें।
 5. `ingame/` की सामग्री गेम executable के पास कॉपी करें।
-6. Windows में `game.bat` चलाएँ। bridge डिफ़ॉल्ट रूप से `testdiscordrpc.exe` खोजता है; नाम अलग हो तो `GAME_EXE` बदलें।
+**ज़रूरी:** `resources/rpc/rpc_bridge.py` खोलें और `GAME_EXE` में `testdiscordrpc.exe` को गेम के मुख्य फ़ोल्डर (`game.bat` के पास) में मौजूद compiled game executable के सटीक नाम से बदलें। `.exe` एक्सटेंशन और quotes बनाए रखें। उदाहरण के लिए, फ़ाइल `MyGame.exe` हो तो `GAME_EXE = GAME_DIR / "MyGame.exe"` सेट करें।
 
 स्क्रिप्ट पहले `resources/rpc/rpc_bridge.exe` खोजती है। वह न मिले तो Python 3 खोजकर पहली बार dependencies इंस्टॉल करती है। bridge compile करने से पहले Application ID सेट करें। Discord Desktop ऐप चालू और लॉग-इन होना चाहिए।
 
