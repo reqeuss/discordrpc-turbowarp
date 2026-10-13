@@ -292,29 +292,33 @@ def run_bridge() -> int:
         print("[RPC] Game detected.")
         while not shutdown_event.is_set() and game_is_running(game_exe):
             if not rpc_connected:
-                if connect_discord(app_id):
-                    print("[RPC] Connected to Discord.")
-                    try:
-                        rpc.update(
-                            details=config["default_details"],
-                            state=config["default_state"],
-                            start=SESSION_START,
-                            large_image=config["large_image"],
-                            large_text=config["large_text"],
-                        )
-                    except Exception as exc:
-                        print(f"[RPC] Default presence failed: {type(exc).__name__}: {exc}")
-                        with rpc_lock:
-                            with suppress(Exception):
-                                rpc.close()
-                            rpc = None
-                            rpc_connected = False
-                    else:
-                        with rpc_lock:
-                            if pending_update is not None and rpc_connected:
+                connected = False
+                # Serialize connection setup with WebSocket updates. This keeps
+                # an early custom update from being overwritten by the default.
+                with rpc_lock:
+                    if not rpc_connected:
+                        connected = connect_discord(app_id)
+                        if connected:
+                            print("[RPC] Connected to Discord.")
+                            try:
+                                rpc.update(
+                                    details=config["default_details"],
+                                    state=config["default_state"],
+                                    start=SESSION_START,
+                                    large_image=config["large_image"],
+                                    large_text=config["large_text"],
+                                )
+                            except Exception as exc:
+                                print(f"[RPC] Default presence failed: {type(exc).__name__}: {exc}")
+                                with suppress(Exception):
+                                    rpc.close()
+                                rpc = None
+                                rpc_connected = False
+                                connected = False
+                            if connected and pending_update is not None:
                                 if apply_presence(pending_update):
                                     pending_update = None
-                else:
+                if not connected:
                     time.sleep(CONNECT_RETRY_SECONDS)
                     continue
             time.sleep(POLL_INTERVAL)
