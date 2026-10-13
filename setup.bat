@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 title Discord Rich Presence - Setup
 cd /d "%~dp0"
 set "RPC_DIR=%~dp0resources\rpc"
@@ -37,7 +37,7 @@ if not exist "%CONFIG%" (
     exit /b 1
   )
   >"%CONFIG%" echo {
-  >>"%CONFIG%" echo   "app_id": "%APP_ID%",
+  >>"%CONFIG%" echo   "app_id": "!APP_ID!",
   >>"%CONFIG%" echo   "game_exe": "testdiscordrpc.exe",
   >>"%CONFIG%" echo   "defaults": {
   >>"%CONFIG%" echo     "details": "Playing a game",
