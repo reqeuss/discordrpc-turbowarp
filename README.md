@@ -83,3 +83,15 @@ CI runs Python compilation, unit tests and JavaScript syntax checks. Those check
 ## Security
 
 The bridge listens only on loopback (`127.0.0.1`). Do not change the host to `0.0.0.0` unless you intentionally want other devices to reach the bridge.
+
+
+## Optional silent EXE launcher (Windows)
+
+You can keep using `game.bat`, or build a GUI-subsystem launcher that hides the bridge and install windows:
+
+1. Install Python 3 on the computer used to build the launcher.
+2. Run `build_exe.bat`.
+3. Copy `dist\GameLauncher.exe` into the game folder, beside `testdiscordrpc.exe`.
+4. Launch `GameLauncher.exe`.
+
+The launcher creates `.venv`, installs the packages from `resources\rpc\requirements.txt`, starts the Python bridge without a console, then launches the game. Python 3 is still required on the target computer because the launcher uses the local Python runtime to create the environment. Errors are shown in a Windows message box and written to `discord-rpc-launcher.log`. The EXE is not included in GitHub; build it locally with `build_exe.bat`.
