@@ -20,7 +20,7 @@
 3. [Discord Developer Portal](https://discord.com/developers/applications)에서 앱을 만들고 Application ID를 복사합니다.
 4. `resources/rpc/rpc_bridge.py`에서 `APP_ID`를 설정합니다. bot token이나 client secret은 입력하지 마세요.
 5. `ingame/` 폴더의 내용을 게임 실행 파일 옆에 복사합니다.
-6. Windows에서 `game.bat`을 실행합니다. bridge는 기본적으로 `testdiscordrpc.exe`를 찾으므로 실행 파일 이름이 다르면 `GAME_EXE`를 변경하세요.
+**중요:** `resources/rpc/rpc_bridge.py`를 열고 `GAME_EXE`의 `testdiscordrpc.exe`를 게임 폴더의 루트(`game.bat`와 같은 위치)에 있는 컴파일된 게임 실행 파일의 정확한 이름으로 바꾸세요. `.exe` 확장자와 따옴표는 유지하세요. 예를 들어 파일명이 `MyGame.exe`라면 `GAME_EXE = GAME_DIR / "MyGame.exe"`로 설정합니다.
 
 먼저 `resources/rpc/rpc_bridge.exe`를 찾고, 없으면 Python 3를 찾아 최초 실행 시 의존성을 설치합니다. 컴파일된 bridge를 배포하려면 빌드 전에 Application ID를 설정하세요. Discord 데스크톱 앱이 실행 중이고 로그인되어 있어야 합니다.
 
