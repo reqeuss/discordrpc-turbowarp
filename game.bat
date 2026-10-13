@@ -1,75 +1,89 @@
 @echo off
 setlocal EnableExtensions
-title Launch game with Discord Rich Presence
 cd /d "%~dp0"
 
 set "GAME=%~dp0testdiscordrpc.exe"
 set "RPC_DIR=%~dp0resources\rpc"
+set "RPC_EXE=%RPC_DIR%\rpc_bridge.exe"
 set "RPC_SCRIPT=%RPC_DIR%\rpc_bridge.py"
 set "REQUIREMENTS=%RPC_DIR%\requirements.txt"
 set "VENV_DIR=%~dp0.venv"
 set "VENV_PY=%VENV_DIR%\Scripts\python.exe"
-
-echo.
-echo ==========================================
-echo   Game + Discord Rich Presence launcher
-echo ==========================================
-echo.
+set "DEPS_MARKER=%VENV_DIR%\.rpc-deps-installed"
 
 if not exist "%GAME%" (
-  echo ERROR: Game executable not found:
-  echo "%GAME%"
-  echo Put testdiscordrpc.exe beside game.bat or edit GAME_EXE in rpc_bridge.py.
-  pause
-  exit /b 1
-)
-if not exist "%RPC_SCRIPT%" (
-  echo ERROR: Python bridge not found: "%RPC_SCRIPT%"
+  echo ERROR: Game executable not found: "%GAME%"
   pause
   exit /b 1
 )
 if not exist "%REQUIREMENTS%" (
-  echo ERROR: Python requirements file not found: "%REQUIREMENTS%"
+  echo ERROR: Missing requirements file: "%REQUIREMENTS%"
   pause
   exit /b 1
 )
+
+rem Fast path: use the compiled bridge immediately, without checking Python.
+if exist "%RPC_EXE%" goto launch_compiled
+
+rem Fallback path: use Python only when the compiled bridge is absent.
+if not exist "%RPC_SCRIPT%" (
+  echo ERROR: Neither rpc_bridge.exe nor rpc_bridge.py was found in "%RPC_DIR%".
+  pause
+  exit /b 1
+)
+
+if exist "%VENV_PY%" goto python_ready
 
 where py >nul 2>&1
-if errorlevel 1 (
-  echo ERROR: Python 3 was not found.
-  echo Install Python 3 from https://www.python.org/downloads/windows/
-  echo Enable the Python launcher, then run game.bat again.
-  pause
-  exit /b 1
-)
-
-if not exist "%VENV_PY%" (
-  echo [1/3] Creating a local Python environment...
+if not errorlevel 1 (
   py -3 -m venv "%VENV_DIR%"
-  if errorlevel 1 (
-    echo ERROR: Could not create the Python environment.
-    pause
-    exit /b 1
-  )
-) else (
-  echo [1/3] Local Python environment already exists.
+  if errorlevel 1 goto python_error
+  goto python_ready
 )
 
-echo [2/3] Installing or updating Python dependencies...
+where python >nul 2>&1
+if not errorlevel 1 (
+  python -c "import sys; raise SystemExit(0 if sys.version_info.major == 3 else 1)" >nul 2>&1
+  if not errorlevel 1 (
+    python -m venv "%VENV_DIR%"
+    if not errorlevel 1 goto python_ready
+  )
+)
+
+echo ERROR: No Python 3 installation was detected, and rpc_bridge.exe is missing.
+echo Install Python 3 or place the compiled bridge at resources\rpc\rpc_bridge.exe.
+pause
+exit /b 1
+
+:python_ready
+if not exist "%VENV_PY%" goto python_error
+if exist "%DEPS_MARKER%" goto launch_python
+
+echo Installing bridge dependencies for the first time...
 "%VENV_PY%" -m pip install --disable-pip-version-check -r "%REQUIREMENTS%"
 if errorlevel 1 (
   echo ERROR: Dependency installation failed.
-  echo Check your internet connection and Python installation.
   pause
   exit /b 1
 )
+type nul > "%DEPS_MARKER%"
 
-echo [3/3] Starting Discord RPC bridge...
+:launch_python
+echo Starting Python RPC bridge...
 start "Discord RPC Bridge" /D "%RPC_DIR%" "%VENV_PY%" "%RPC_SCRIPT%"
-timeout /t 2 /nobreak >nul
+goto launch_game
 
-echo Starting game...
+:launch_compiled
+echo Starting compiled RPC bridge...
+start "" /D "%RPC_DIR%" "%RPC_EXE%"
+goto launch_game
+
+:launch_game
+rem No fixed 2-second wait: the extension retries the WebSocket connection itself.
 start "" "%GAME%"
-echo.
-echo Game launched. Keep the Discord RPC Bridge window open.
 exit /b 0
+
+:python_error
+echo ERROR: Could not create or find the local Python environment.
+pause
+exit /b 1
