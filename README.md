@@ -4,7 +4,7 @@ Add Discord Rich Presence to a TurboWarp game with a custom extension and a loca
 
 **Important:** the extension must be added to the TurboWarp project while the game is being developed, **before exporting or compiling the game**. This project does not inject RPC into an arbitrary game that was already exported without the extension.
 
-🌍 **Languages:** [Français](readme/README.fr.md) · [English](readme/README.en.md) · [Español](readme/README.es.md)
+🌍 **Languages:** [Français](readme/README.fr.md) · [English](readme/README.en.md) · [Español](readme/README.es.md) · [日本語](readme/README.ja.md) · [简体中文](readme/README.zh-CN.md) · [繁體中文](readme/README.zh-TW.md) · [한국어](readme/README.ko.md) · [Deutsch](readme/README.de.md) · [Português (Brasil)](readme/README.pt-BR.md) · [Русский](readme/README.ru.md) · [العربية](readme/README.ar.md) · [हिन्दी](readme/README.hi.md) · [Italiano](readme/README.it.md)
 
 ## What it does
 
