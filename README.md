@@ -40,13 +40,12 @@ No separate setup script or config JSON is needed. Do not put a Discord bot toke
 
 ## Launch on Windows
 
-1. Install Python 3 for Windows and enable the Python launcher (`py`). This is the only manual software prerequisite.
-2. Edit `APP_ID` in `resources/rpc/rpc_bridge.py`.
-3. Ensure `testdiscordrpc.exe` is beside `game.bat` (or edit `GAME_EXE` in the Python file).
-4. Add `extension.js` to TurboWarp as a custom **unsandboxed extension**.
-5. Double-click `game.bat`.
+1. Edit `APP_ID` in `resources/rpc/rpc_bridge.py` before building the bridge EXE, or configure it in the existing compiled bridge workflow.
+2. Ensure `testdiscordrpc.exe` is beside `game.bat`.
+3. Add `extension.js` to TurboWarp as a custom **unsandboxed extension**.
+4. Double-click `game.bat`.
 
-The first launch creates a local `.venv` folder and installs everything listed in `resources/rpc/requirements.txt`. Later launches reuse that environment and check/install the dependencies again. No administrator rights should normally be needed.
+The launcher first checks for `resources/rpc/rpc_bridge.exe`. If it exists, it launches it immediately without checking for Python. Only if the bridge EXE is missing does it look for a local `.venv`, then the `py` or `python` command, and fall back to `rpc_bridge.py`. Dependencies are installed only once per local environment, then a marker avoids the pip check on later launches. The game starts immediately; the extension handles WebSocket reconnects while the bridge starts.
 
 ## Extension blocks
 
@@ -63,10 +62,10 @@ Set the fields, then call **update presence**. Timestamps are Unix timestamps in
 
 - The Discord **desktop app** must be running and signed in.
 - The Application ID must be numeric and belong to the Discord application with the configured Rich Presence assets.
-- If the extension stays disconnected, check that the bridge console is open and that the extension was loaded unsandboxed.
+- If the extension stays disconnected, check that `rpc_bridge.exe` or the Python bridge is running and that the extension was loaded unsandboxed.
 - If presence does not update, read the `[RPC]` messages in the bridge console.
 - A browser visit to `http://127.0.0.1:32123/` is not a health check: the endpoint speaks WebSocket.
-- If Python or dependency installation fails, install/reinstall Python 3, enable `py`, then launch `game.bat` again.
+- If the compiled bridge is missing and the Python fallback fails, install Python 3 and enable `py`, then launch `game.bat` again.
 
 ## Developer checks
 
