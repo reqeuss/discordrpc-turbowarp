@@ -163,8 +163,9 @@ def apply_presence(data):
             party_id=optional_text(data, "partyId", 128),
             party_size=build_party_size(data),
 
-            # Join / Spectate secrets
-            secrets=secrets or None,
+            # pypresence expects these as separate keyword arguments.
+            join=join_secret,
+            spectate=spectate_secret,
 
             # Instance
             instance=bool(data.get("instance", True)),
