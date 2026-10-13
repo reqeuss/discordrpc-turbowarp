@@ -1,290 +1,50 @@
-
 (function (Scratch) {
-    "use strict";
-
-    const WS_URL = "ws://127.0.0.1:32123";
-
-    const FIELDS = {
-        details: "",
-        state: "",
-        startTimestamp: "",
-        endTimestamp: "",
-        largeImageKey: "",
-        largeImageText: "",
-        smallImageKey: "",
-        smallImageText: "",
-        partyId: "",
-        partySize: "",
-        partyMax: "",
-        joinSecret: "",
-        spectateSecret: "",
-        instance: "true"
-    };
-
-    class DiscordRPC {
-        constructor() {
-            this.socket = null;
-            this.pendingMessage = null;
-            this.reconnectTimer = null;
-            this.stopped = false;
-            this.lastStatus = "Connecting";
-
-            this.connect();
-        }
-
-        getInfo() {
-            return {
-                id: "reqeussdiscordrpc",
-                name: "Discord Rich Presence",
-                color1: "#5865F2",
-                color2: "#4752C4",
-                color3: "#364099",
-
-                blocks: [
-                    {
-                        opcode: "setField",
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: "set [FIELD] to [VALUE]",
-                        arguments: {
-                            FIELD: {
-                                type: Scratch.ArgumentType.STRING,
-                                menu: "fields"
-                            },
-                            VALUE: {
-                                type: Scratch.ArgumentType.STRING,
-                                defaultValue: "My activity"
-                            }
-                        }
-                    },
-                    {
-                        opcode: "updatePresence",
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: "update presence"
-                    },
-                    {
-                        opcode: "clearPresence",
-                        blockType: Scratch.BlockType.COMMAND,
-                        text: "clear presence"
-                    },
-                    {
-                        opcode: "connectionStatus",
-                        blockType: Scratch.BlockType.REPORTER,
-                        text: "RPC connection status"
-                    }
-                ],
-
-                menus: {
-                    fields: {
-                        acceptReporters: false,
-                        items: [
-                            { text: "Details", value: "details" },
-                            { text: "State", value: "state" },
-                            { text: "Start timestamp", value: "startTimestamp" },
-                            { text: "End timestamp", value: "endTimestamp" },
-                            { text: "Large image key", value: "largeImageKey" },
-                            { text: "Large image text", value: "largeImageText" },
-                            { text: "Small image key", value: "smallImageKey" },
-                            { text: "Small image text", value: "smallImageText" },
-                            { text: "Party ID", value: "partyId" },
-                            { text: "Party size", value: "partySize" },
-                            { text: "Party maximum", value: "partyMax" },
-                            { text: "Join secret", value: "joinSecret" },
-                            { text: "Spectate secret", value: "spectateSecret" },
-                            { text: "Instance (true/false)", value: "instance" }
-                        ]
-                    }
-                }
-            };
-        }
-
-        connect() {
-            if (this.stopped) return;
-
-            if (
-                this.socket &&
-                (
-                    this.socket.readyState === WebSocket.OPEN ||
-                    this.socket.readyState === WebSocket.CONNECTING
-                )
-            ) {
-                return;
-            }
-
-            this.lastStatus = "Connecting";
-
-            try {
-                const ws = new WebSocket(WS_URL);
-                this.socket = ws;
-
-                ws.onopen = () => {
-                    if (this.socket !== ws) return;
-
-                    this.lastStatus = "Connected";
-                    console.log("[Discord RPC] Connected to Python bridge.");
-
-                    if (this.pendingMessage) {
-                        const message = this.pendingMessage;
-                        this.pendingMessage = null;
-                        this.sendRaw(message);
-                    }
-                };
-
-                ws.onmessage = (event) => {
-                    console.log("[Discord RPC] Bridge:", event.data);
-                };
-
-                ws.onerror = (error) => {
-                    console.error("[Discord RPC] WebSocket error:", error);
-                    this.lastStatus = "Connection error";
-                };
-
-                ws.onclose = () => {
-                    if (this.socket === ws) {
-                        this.socket = null;
-                    }
-
-                    if (!this.stopped) {
-                        this.lastStatus = "Disconnected";
-
-                        if (this.reconnectTimer === null) {
-                            this.reconnectTimer = setTimeout(() => {
-                                this.reconnectTimer = null;
-                                this.connect();
-                            }, 2000);
-                        }
-                    }
-                };
-            } catch (error) {
-                this.lastStatus = "Connection error";
-                console.error("[Discord RPC] Cannot connect:", error);
-
-                if (!this.stopped && this.reconnectTimer === null) {
-                    this.reconnectTimer = setTimeout(() => {
-                        this.reconnectTimer = null;
-                        this.connect();
-                    }, 2000);
-                }
-            }
-        }
-
-        setField(args) {
-            const field = String(args.FIELD || "");
-            const value = String(args.VALUE ?? "");
-
-            if (!Object.prototype.hasOwnProperty.call(FIELDS, field)) {
-                return;
-            }
-
-            FIELDS[field] = value;
-        }
-
-        makePayload() {
-            const toTimestamp = (value) => {
-                if (value.trim() === "") return null;
-
-                const number = Number(value);
-
-                if (!Number.isFinite(number)) return null;
-
-                return Math.trunc(number);
-            };
-
-            const toInteger = (value) => {
-                if (value.trim() === "") return null;
-
-                const number = Number(value);
-
-                if (!Number.isFinite(number)) return null;
-
-                return Math.trunc(number);
-            };
-
-            const clean = (value) => {
-                const text = String(value ?? "").trim();
-                return text.length ? text : null;
-            };
-
-            return {
-                action: "update",
-
-                // Activity text
-                details: clean(FIELDS.details),
-                state: clean(FIELDS.state),
-
-                // Unix timestamps, in seconds
-                start: toTimestamp(FIELDS.startTimestamp),
-                end: toTimestamp(FIELDS.endTimestamp),
-
-                // Discord Developer Portal asset keys
-                largeImage: clean(FIELDS.largeImageKey),
-                largeText: clean(FIELDS.largeImageText),
-                smallImage: clean(FIELDS.smallImageKey),
-                smallText: clean(FIELDS.smallImageText),
-
-                // Party configuration
-                partyId: clean(FIELDS.partyId),
-                partySize: toInteger(FIELDS.partySize),
-                partyMax: toInteger(FIELDS.partyMax),
-
-                // Join / Spectate
-                joinSecret: clean(FIELDS.joinSecret),
-                spectateSecret: clean(FIELDS.spectateSecret),
-
-                // Boolean, not a string
-                instance: FIELDS.instance.trim().toLowerCase() !== "false"
-            };
-        }
-
-        sendRaw(payload) {
-            if (
-                this.socket &&
-                this.socket.readyState === WebSocket.OPEN
-            ) {
-                try {
-                    this.socket.send(JSON.stringify(payload));
-                    this.lastStatus = "Connected";
-                    console.log("[Discord RPC] Update sent:", payload);
-                    return true;
-                } catch (error) {
-                    console.error("[Discord RPC] Send failed:", error);
-                    this.pendingMessage = payload;
-                    this.lastStatus = "Send error";
-                    return false;
-                }
-            }
-
-            this.pendingMessage = payload;
-            this.lastStatus = "Waiting for bridge";
-            this.connect();
-
-            return false;
-        }
-
-        updatePresence() {
-            // Every update contains ALL currently configured fields.
-            const payload = this.makePayload();
-
-            this.pendingMessage = payload;
-            this.connect();
-
-            if (
-                this.socket &&
-                this.socket.readyState === WebSocket.OPEN
-            ) {
-                this.pendingMessage = null;
-                this.sendRaw(payload);
-            }
-        }
-
-        clearPresence() {
-            this.pendingMessage = null;
-            this.sendRaw({ action: "clear" });
-        }
-
-        connectionStatus() {
-            return this.lastStatus;
-        }
-    }
-
-    Scratch.extensions.register(new DiscordRPC());
+"use strict";
+const URL = "ws://127.0.0.1:32123";
+const defaults = {
+ details:"", state:"", startTimestamp:"", endTimestamp:"",
+ largeImageKey:"", largeImageText:"", smallImageKey:"", smallImageText:"",
+ partyId:"", partySize:"", partyMax:"", joinSecret:"", spectateSecret:"", instance:"true"
+};
+const fields = [
+ ["Details","details"],["State","state"],["Start timestamp (Unix seconds)","startTimestamp"],
+ ["End timestamp (Unix seconds)","endTimestamp"],["Large image key","largeImageKey"],
+ ["Large image text","largeImageText"],["Small image key","smallImageKey"],
+ ["Small image text","smallImageText"],["Party ID","partyId"],["Party size","partySize"],
+ ["Party maximum","partyMax"],["Join secret","joinSecret"],["Spectate secret","spectateSecret"],
+ ["Instance (true/false)","instance"]
+].map(([text,value])=>({text,value}));
+class DiscordRPC {
+ constructor(){this.fields={...defaults};this.ws=null;this.pending=null;this.timer=null;this.status="Disconnected";this.error="";this.stopped=false;this.connect();}
+ getInfo(){return {id:"reqeussdiscordrpc",name:"Discord Rich Presence",color1:"#5865F2",color2:"#4752C4",color3:"#364099",blocks:[
+ {opcode:"setField",blockType:Scratch.BlockType.COMMAND,text:"set [FIELD] to [VALUE]",arguments:{FIELD:{type:Scratch.ArgumentType.STRING,menu:"fields"},VALUE:{type:Scratch.ArgumentType.STRING,defaultValue:"Playing a game"}}},
+ {opcode:"updatePresence",blockType:Scratch.BlockType.COMMAND,text:"update presence"},
+ {opcode:"clearPresence",blockType:Scratch.BlockType.COMMAND,text:"clear presence"},
+ {opcode:"reconnect",blockType:Scratch.BlockType.COMMAND,text:"reconnect to bridge"},
+ {opcode:"connectionStatus",blockType:Scratch.BlockType.REPORTER,text:"RPC connection status"},
+ {opcode:"getField",blockType:Scratch.BlockType.REPORTER,text:"current value of [FIELD]",arguments:{FIELD:{type:Scratch.ArgumentType.STRING,menu:"fields"}}}
+ ],menus:{fields:{acceptReporters:false,items:fields}}};}
+ connect(){
+  if(this.stopped||this.ws&&(this.ws.readyState===WebSocket.OPEN||this.ws.readyState===WebSocket.CONNECTING))return;
+  this.status="Connecting to bridge";
+  try{const ws=new WebSocket(URL);this.ws=ws;
+   ws.onopen=()=>{if(this.ws!==ws)return;this.status="Bridge connected";this.error="";if(this.pending){const p=this.pending;this.pending=null;this.send(p);}};
+   ws.onmessage=e=>{try{const m=JSON.parse(String(e.data));if(m.type==="status")this.status=String(m.status||this.status);if(m.type==="ack"&&!m.ok)this.error=String(m.error||"Bridge rejected update");}catch(_){}};
+   ws.onerror=()=>{if(this.ws===ws){this.status="Bridge connection error";this.error="Check that the Python bridge is running.";}};
+   ws.onclose=()=>{if(this.ws===ws)this.ws=null;if(!this.stopped){this.status="Bridge disconnected";this.schedule();}};
+  }catch(e){this.error=String(e);this.status="WebSocket unavailable";this.schedule();}
+ }
+ schedule(){if(this.stopped||this.timer!==null)return;this.timer=setTimeout(()=>{this.timer=null;this.connect();},2000);}
+ reconnect(){this.error="";if(this.timer!==null)clearTimeout(this.timer);this.timer=null;if(this.ws){try{this.ws.close();}catch(_){}this.ws=null;}this.connect();}
+ setField(a){const k=String(a.FIELD||"");if(Object.prototype.hasOwnProperty.call(this.fields,k))this.fields[k]=String(a.VALUE??"").slice(0,256);}
+ getField(a){const k=String(a.FIELD||"");return Object.prototype.hasOwnProperty.call(this.fields,k)?this.fields[k]:"";}
+ clean(v){const s=String(v??"").trim();return s||null;}
+ num(v){const s=String(v??"").trim();if(!s)return null;const n=Number(s);return Number.isFinite(n)?Math.trunc(n):null;}
+ payload(){const f=this.fields;const i=String(f.instance).trim().toLowerCase();return {action:"update",details:this.clean(f.details),state:this.clean(f.state),start:this.num(f.startTimestamp),end:this.num(f.endTimestamp),largeImage:this.clean(f.largeImageKey),largeText:this.clean(f.largeImageText),smallImage:this.clean(f.smallImageKey),smallText:this.clean(f.smallImageText),partyId:this.clean(f.partyId),partySize:this.num(f.partySize),partyMax:this.num(f.partyMax),joinSecret:this.clean(f.joinSecret),spectateSecret:this.clean(f.spectateSecret),instance:!["false","0","no","off"].includes(i)};}
+ send(p){if(!this.ws||this.ws.readyState!==WebSocket.OPEN){this.pending=p;this.status="Waiting for bridge";this.connect();return false;}try{this.ws.send(JSON.stringify(p));this.status="Update sent to bridge";return true;}catch(e){this.pending=p;this.error=String(e);this.status="Send failed";return false;}}
+ updatePresence(){const p=this.payload();this.pending=p;if(this.ws&&this.ws.readyState===WebSocket.OPEN){this.pending=null;this.send(p);}else{this.connect();this.status="Update queued";}}
+ clearPresence(){this.pending=null;this.send({action:"clear"});}
+ connectionStatus(){return this.error?this.status+" — "+this.error:this.status;}
+}
+Scratch.extensions.register(new DiscordRPC());
 })(Scratch);
