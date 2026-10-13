@@ -32,6 +32,12 @@ class PresencePayloadTests(unittest.TestCase):
         self.assertFalse(parse_bool("false"))
         self.assertTrue(parse_bool(None, default=True))
 
+    def test_missing_start_uses_stable_session_timestamp(self):
+        from resources.rpc import rpc_bridge
+
+        payload = make_presence_kwargs({})
+        self.assertEqual(payload["start"], rpc_bridge.SESSION_START)
+
     def test_payload_uses_pypresence_argument_names(self):
         payload = make_presence_kwargs({
             "details": "In a test",
