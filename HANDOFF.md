@@ -69,3 +69,12 @@ CI does not prove that a live Discord IPC session works. Test with the actual Wi
 - Discord image keys must exist in the application's Rich Presence Art Assets.
 - Visiting `http://127.0.0.1:32123/` in a browser is not a valid test because the endpoint is WebSocket.
 - Keep the bridge bound to `127.0.0.1`.
+
+
+## Silent EXE launcher
+- Optional source: `launcher.py`; build script: `build_exe.bat`.
+- Build with Python 3 installed by running `build_exe.bat`; output is `dist\GameLauncher.exe`.
+- Copy the built EXE beside `testdiscordrpc.exe` in the game folder.
+- It silently creates `.venv`, installs `resources\rpc\requirements.txt`, starts `resources\rpc\rpc_bridge.py` without a console, then starts the game.
+- Python 3 is still required on the target PC. Failures are shown with a Windows message box and logged to `discord-rpc-launcher.log`.
+- Keep `game.bat` as a visible/debug fallback. The compiled EXE is a local build artifact and is not committed.
