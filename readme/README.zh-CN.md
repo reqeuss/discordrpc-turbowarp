@@ -20,7 +20,7 @@
 3. 在 [Discord Developer Portal](https://discord.com/developers/applications) 创建应用并复制 Application ID。
 4. 在 `resources/rpc/rpc_bridge.py` 中设置 `APP_ID`。不要填写 bot token 或 client secret。
 5. 将 `ingame/` 文件夹中的内容复制到游戏可执行文件旁边。
-6. 在 Windows 上运行 `game.bat`。bridge 默认查找 `testdiscordrpc.exe`；如果游戏文件名不同，请修改 `GAME_EXE`。
+**重要：** 打开 `resources/rpc/rpc_bridge.py`，将 `GAME_EXE` 中的 `testdiscordrpc.exe` 替换为游戏文件夹根目录（与 `game.bat` 同一目录）中已编译游戏可执行文件的准确文件名。保留 `.exe` 扩展名和引号。例如，文件名为 `MyGame.exe` 时，设置为 `GAME_EXE = GAME_DIR / "MyGame.exe"`。
 
 启动时会优先查找 `resources/rpc/rpc_bridge.exe`；如果不存在，则尝试使用 Python 3，并在首次启动时安装依赖。若要分发编译版 bridge，请在编译前配置 Application ID。玩家需要运行并登录 Discord 桌面版。
 
