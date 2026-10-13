@@ -20,7 +20,7 @@ Aggiungi Discord Rich Presence a un gioco TurboWarp tramite un'estensione person
 3. Crea o seleziona un'app nel [Discord Developer Portal](https://discord.com/developers/applications) e copia l'Application ID.
 4. Imposta il tuo ID numerico in `APP_ID` in `resources/rpc/rpc_bridge.py`. Non inserire bot token o client secret.
 5. Copia il contenuto di `ingame/` accanto all'eseguibile del gioco.
-6. Su Windows, avvia `game.bat`. Per impostazione predefinita il bridge cerca `testdiscordrpc.exe`; se il nome è diverso, modifica `GAME_EXE`.
+**Importante:** apri `resources/rpc/rpc_bridge.py` e sostituisci `testdiscordrpc.exe` in `GAME_EXE` con il nome esatto dell'eseguibile compilato del gioco, che si trova nella cartella principale del gioco (accanto a `game.bat`). Mantieni l'estensione `.exe` e le virgolette. Ad esempio, per `MyGame.exe`, imposta `GAME_EXE = GAME_DIR / "MyGame.exe"`.
 
 Lo script cerca prima `resources/rpc/rpc_bridge.exe`. Se non è presente, cerca Python 3 e installa le dipendenze al primo avvio. Configura l'Application ID prima di compilare il bridge. Discord Desktop deve essere aperto e connesso.
 
