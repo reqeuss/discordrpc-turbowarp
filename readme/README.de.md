@@ -20,7 +20,7 @@ Füge Discord Rich Presence mithilfe einer benutzerdefinierten Erweiterung und e
 3. Erstelle eine Anwendung im [Discord Developer Portal](https://discord.com/developers/applications) und kopiere die Application ID.
 4. Trage deine numerische ID in `APP_ID` in `resources/rpc/rpc_bridge.py` ein. Niemals Bot-Token oder Client-Secret eintragen.
 5. Kopiere den **Inhalt** von `ingame/` neben die Spieldatei.
-6. Starte unter Windows `game.bat`. Standardmäßig sucht die Bridge nach `testdiscordrpc.exe`; passe andernfalls `GAME_EXE` an.
+**Wichtig:** Öffne `resources/rpc/rpc_bridge.py` und ersetze `testdiscordrpc.exe` in `GAME_EXE` durch den exakten Namen der kompilierten Spieldatei im Stammordner des Spiels (neben `game.bat`). Behalte die Erweiterung `.exe` und die Anführungszeichen bei. Bei `MyGame.exe` lautet die Zeile beispielsweise `GAME_EXE = GAME_DIR / "MyGame.exe"`.
 
 Zuerst wird `resources/rpc/rpc_bridge.exe` gesucht. Fehlt sie, wird Python 3 gesucht und beim ersten Start werden Abhängigkeiten installiert. Konfiguriere die Application ID vor dem Kompilieren einer Bridge. Die Discord-Desktop-App muss geöffnet und angemeldet sein.
 
