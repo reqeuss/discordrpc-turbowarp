@@ -1,0 +1,14 @@
+# Local configuration: contains the app ID and local game path
+resources/rpc/config.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Logs and editor files
+*.log
+.DS_Store
+.vscode/
+.idea/
