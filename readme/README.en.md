@@ -61,7 +61,7 @@ MyGame/
         └── requirements.txt
 ```
 
-The bridge looks for `testdiscordrpc.exe` by default. If your executable has a different name, update `GAME_EXE` in `rpc_bridge.py`.
+**Important:** open `resources/rpc/rpc_bridge.py` and replace `testdiscordrpc.exe` in `GAME_EXE` with the exact filename of your compiled game executable in the game's root folder (next to `game.bat`). Keep the `.exe` extension and quotation marks. For example, for `MyGame.exe`, set `GAME_EXE = GAME_DIR / "MyGame.exe"`.
 
 ### 4. Launch
 
